@@ -25,8 +25,38 @@ export interface Env {
 	// MY_QUEUE: Queue;
 }
 
+const srcPathPattern = /^\/(?<repo>[\w\-\/]+)-(?<hash>[a-zA-Z0-9]+)(?<fPath>\/.*)/
+
+/*
+/ {repo-id} - {git-hash} / {fpath}
+=>
+/ {repo-id} / resolve / {git-hash} / {fpath}
+*/
+export function convertPath(path: string): string {
+	const match = path.match(srcPathPattern)
+	if (!match?.groups) {
+		throw new Error(`Invalid path: ${path}`)
+	}
+	const {repo, hash, fPath} = match.groups
+	return `${repo}/resolve/${hash}${fPath}`
+}
+
+const newBase = 'https://hf.co';
+const statusCode = 301;
+
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		return new Response('Hello World!');
+		const url = new URL(request.url)
+		let newPath: string
+		try {
+			newPath = convertPath(url.pathname)
+		} catch (e) {
+			console.log(e)
+			return new Response(undefined, { status: 404 })
+		}
+
+		const destinationURL = `${newBase}/${newPath}`
+		console.log(`Redirecting ${request.url} to ${destinationURL}`);
+		return Response.redirect(destinationURL, statusCode);
 	},
 };
