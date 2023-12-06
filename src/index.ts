@@ -38,7 +38,7 @@ export function convertPath(path: string): string {
 		throw new Error(`Invalid path: ${path}`)
 	}
 	const {repo, hash, fPath} = match.groups
-	return `${repo}/resolve/${hash}${fPath}`
+	return `${repo.replace('--','/')}/resolve/${hash}${fPath}`
 }
 
 const newBase = 'https://hf.co';
