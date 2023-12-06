@@ -2,6 +2,10 @@ name = "gh-to-hf"
 main = "src/index.ts"
 compatibility_date = "2023-11-21"
 
+routes = [
+	{ pattern = "r2hf.pyonpyon.today", custom_domain = true }
+]
+
 # Variable bindings. These are arbitrary, plaintext strings (similar to environment variables)
 # Note: Use secrets to store sensitive data.
 # Docs: https://developers.cloudflare.com/workers/platform/environment-variables
