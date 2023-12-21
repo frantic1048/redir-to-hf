@@ -25,38 +25,41 @@ export interface Env {
 	// MY_QUEUE: Queue;
 }
 
-const srcPathPattern = /^\/(?<repo>[\w\-\/]+)-(?<hash>[a-zA-Z0-9]+)(?<fPath>\/.*)/
+const srcPathPattern =
+	/^\/((?<prefix>\w+)(?:--))?(?<org>[\w\-]+)(?:--)(?<repo>[\w\-]+?)(?:--?)(?<hash>[a-zA-Z0-9]+)(?<fPath>\/.*)/
 
-/*
-/ {repo-id} - {git-hash} / {fpath}
-=>
-/ {repo-id} / resolve / {git-hash} / {fpath}
-*/
 export function convertPath(path: string): string {
 	const match = path.match(srcPathPattern)
 	if (!match?.groups) {
 		throw new Error(`Invalid path: ${path}`)
 	}
-	const {repo, hash, fPath} = match.groups
-	return `${repo.replace('--','/')}/resolve/${hash}${fPath}`
+	const { prefix, org, repo, hash, fPath } = match.groups
+
+	return `/${
+		!prefix || prefix === 'models' ? '' : `${prefix}/`
+	}${org}/${repo}/resolve/${hash}${fPath}`
 }
 
-const newBase = 'https://hf.co';
-const statusCode = 301;
+const newBase = 'https://hf.co'
+const statusCode = 301
 
 export default {
-	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+	async fetch(
+		request: Request,
+		env: Env,
+		ctx: ExecutionContext,
+	): Promise<Response> {
 		const url = new URL(request.url)
 		let newPath: string
 		try {
 			newPath = convertPath(url.pathname)
 		} catch (e) {
 			console.log(e)
-			return new Response(undefined, { status: 404 })
+			return new Response(undefined, { status: 400 })
 		}
 
-		const destinationURL = `${newBase}/${newPath}`
-		console.log(`Redirecting ${request.url} to ${destinationURL}`);
-		return Response.redirect(destinationURL, statusCode);
+		const destinationURL = `${newBase}${newPath}`
+		console.log(`Redirecting: ${request.url}\n->\t${destinationURL}`)
+		return Response.redirect(destinationURL, statusCode)
 	},
-};
+}

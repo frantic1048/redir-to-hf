@@ -1,4 +1,4 @@
-name = "gh-to-hf"
+name = "redir-to-hf"
 main = "src/index.ts"
 compatibility_date = "2023-11-21"
 
